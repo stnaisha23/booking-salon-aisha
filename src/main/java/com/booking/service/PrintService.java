@@ -49,32 +49,39 @@ public class PrintService {
 
     public void showAllCustomer() {
         List<Person> personList = PersonRepository.getAllPerson();
-        System.out.printf("| %-4s | %-7s | %-15s | %-8s |\n", "No.", "ID", "Nama", "Alamat", "Membership", "Uang");
-        System.out.println("+========================================+");
-        int num = 1;
+        System.out.printf("| %11s | %-11s | %-15s| %-15s| %-15s |\n", "ID", "Nama", "Alamat", "Membership", "Uang");
+        System.out.println("+===============================================================+");
         for (Person person : personList) {
             if (person instanceof com.booking.models.Customer) {
                 com.booking.models.Customer customer = (com.booking.models.Customer) person;
-                System.out.printf("| %-4s | %-7s | %-15s | %-8s |\n", num, customer.getId(), customer.getName(), customer.getAddress(),
-                        customer.getMember() != null ? customer.getMember().getMembershipName() : "None", customer.getWallet());
-                num++;
+                {                        
+                    System.out.printf("| %11s ", customer.getId());
+                    System.out.printf("| %-11s ", customer.getAddress());
+                    System.out.printf("| %-15s",  customer.getMember() != null ? customer.getMember().getMembershipName() : "None");
+                    System.out.printf("| %-15s", customer.getWallet());
+                    System.out.println();
+                }
             }
         }
     }
 
     public void showAllEmployee() {
         List<Person> personList = PersonRepository.getAllPerson();
-        System.out.printf("| %-4s | %-7s | %-15s | %-8s |\n", "No.", "ID", "Nama", "Alamat", "Pengalaman");
-        System.out.println("+========================================+");
-        int num = 1;
+        System.out.printf("| %11s | %-11s | %-15s| %-15s|\n", "ID", "Nama", "Alamat", "Pengalaman");
+        System.out.println("+================================================================+");
         for (Person person : personList) {
             if (person instanceof com.booking.models.Employee) {
                 com.booking.models.Employee employee = (com.booking.models.Employee) person;
-                System.out.printf("| %-4s | %-7s | %-15s | %-8s |\n", num, employee.getId(), employee.getName(), employee.getAddress(),
-                        employee.getExperience());
-                num++;
+                {                        
+                    System.out.printf("| %11s ", employee.getId());
+                    System.out.printf("| %-11s ", employee.getName());
+                    System.out.printf("| %-15s",  employee.getAddress());
+                    System.out.printf("| %-15s", employee.getExperience());
+                    System.out.println();
+                }
             }
         }
+         System.out.println("==================================================================");
     }
 
     public void showHistoryReservation(List<Reservation> reservationList) {
@@ -82,7 +89,6 @@ public class PrintService {
         System.out.printf("| %-4s | %-15s | %-15s | %-15s | %-10s |\n",
                 "ID", "Nama Customer", "Service", "Total Biaya", "Workstage");
         System.out.println("+==============================================================================+");
-        System.out.println("+========================================================================================+");
         for (Reservation reservation : reservationList) {
             if (reservation.getWorkstage().equalsIgnoreCase("Waiting") || reservation.getWorkstage().equalsIgnoreCase("In process")) {                        
                 System.out.printf("| %11s | %-11s | %-15s| %-6s| %-20s| %-15s| %-15s| %-15s|\n", "ID", "Nama Customer", "Service", "Total Biaya", "Workstage", "Placement", "Salary", "Allowance");
