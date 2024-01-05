@@ -3,16 +3,9 @@ package com.booking.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
-import com.booking.models.Person;
 import com.booking.models.Reservation;
-import com.booking.models.Service;
-import com.booking.repositories.PersonRepository;
-import com.booking.repositories.ServiceRepository;
 
 public class MenuService {
-    private static List<Person> personList = PersonRepository.getAllPerson();
-    private static List<Service> serviceList = ServiceRepository.getAllService();
     private static List<Reservation> reservationList = new ArrayList<>();
     private static Scanner input = new Scanner(System.in);
 
@@ -34,7 +27,7 @@ public class MenuService {
             switch (choice) {
                 case 1:
                     do {
-                        PrintService.printMenu("Show Data", subMenuArr);
+                        PrintService.printMenu("\nTampilkan Data", subMenuArr);
                         System.out.println();
                         System.out.print("Pilih submenu : ");
                         subChoice = Integer.valueOf(input.nextLine());

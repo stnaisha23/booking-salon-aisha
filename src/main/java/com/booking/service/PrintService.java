@@ -1,6 +1,8 @@
 package com.booking.service;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 import com.booking.models.Person;
 import com.booking.models.Reservation;
@@ -22,53 +24,56 @@ public class PrintService {
 
     public String printServices(List<Service> serviceList){
         String result = "";
-        // Bisa disesuaikan kembali
         for (Service service : serviceList) {
             result += service.getServiceName() + ", ";
         }
         return result;
     }
-    public void showRecentReservation(List<Reservation> reservationList){
-        System.out.printf("| %-4s | %-15s | %-15s | %-15s | %-10s |\n",
-                "ID", "Nama Customer", "Service", "Total Biaya", "Workstage");
-        System.out.println("+==============================================================================+");
-        for (Reservation reservation : reservationList) {
-            if (reservation.getWorkstage().equalsIgnoreCase("Waiting") || reservation.getWorkstage().equalsIgnoreCase("In process")) {                        
-                System.out.printf("| %11s | %-11s | %-15s| %-6s| %-20s| %-15s| %-15s| %-15s|\n", "ID", "Nama Customer", "Service", "Total Biaya", "Workstage", "Placement", "Salary", "Allowance");
-                System.out.println("======================================================================================================================");
-                System.out.printf("| %11s ", reservation.getReservationId());
-                System.out.printf("| %-11s ", reservation.getCustomer().getName());
-                System.out.printf("| %-15s",  printServices(reservation.getServices()));
-                System.out.printf("| %-6s", reservation.getReservationPrice());
-                System.out.printf("| %-20s", reservation.getWorkstage());
-                System.out.println();
-                System.out.println("======================================================================================================================");
-            }
-        }
-    }
 
-    public void showAllCustomer() {
-        List<Person> personList = PersonRepository.getAllPerson();
-        System.out.printf("| %11s | %-11s | %-15s| %-15s| %-15s |\n", "ID", "Nama", "Alamat", "Membership", "Uang");
-        System.out.println("+===============================================================+");
-        for (Person person : personList) {
-            if (person instanceof com.booking.models.Customer) {
-                com.booking.models.Customer customer = (com.booking.models.Customer) person;
-                {                        
-                    System.out.printf("| %11s ", customer.getId());
-                    System.out.printf("| %-11s ", customer.getAddress());
-                    System.out.printf("| %-15s",  customer.getMember() != null ? customer.getMember().getMembershipName() : "None");
-                    System.out.printf("| %-15s", customer.getWallet());
+    public void showRecentReservation(List<Reservation> reservationList) {
+        System.out.printf("| %-11s | %-15s | %-15s | %-15s | %-20s |\n",
+                "ID", "Nama Customer", "Service", "Total Biaya", "Workstage");
+        System.out.println("+====================================================================+");
+        for (Reservation reservation : reservationList) {
+            if (reservation.getWorkstage().equalsIgnoreCase("Waiting") || reservation.getWorkstage().equalsIgnoreCase("In process")) {
+                if (reservation.getServices().size() > 0) {
+                    System.out.printf("| %11s ", reservation.getReservationId());
+                    System.out.printf("| %-15s", reservation.getCustomer().getName());
+                    System.out.printf("| %-15s", printServices(reservation.getServices()));
+                    System.out.printf("| %-15s", formatCurrency(reservation.getReservationPrice()));
+                    System.out.printf("| %-20s", reservation.getWorkstage());
                     System.out.println();
                 }
             }
         }
     }
 
+    public void showAllCustomer() {
+        List<Person> personList = PersonRepository.getAllPerson();
+        System.out.println("+================================================================================+");
+        System.out.printf("| %11s | %-11s | %-15s| %-15s| %-15s |\n", "ID", "Nama", "Alamat", "Membership", "Uang");
+        System.out.println("+================================================================================+");
+        for (Person person : personList) {
+            if (person instanceof com.booking.models.Customer) {
+                com.booking.models.Customer customer = (com.booking.models.Customer) person;
+                {                        
+                    System.out.printf("| %11s ", customer.getId());
+                    System.out.printf("| %-11s ", customer.getName());
+                    System.out.printf("| %-15s ", customer.getAddress());
+                    System.out.printf("| %-15s",  customer.getMember() != null ? customer.getMember().getMembershipName() : "None");
+                    System.out.printf("| %-15s |", (formatCurrency(customer.getWallet())));
+                    System.out.println();
+                }
+            }
+        }
+        System.out.println("+================================================================================+");
+    }
+
     public void showAllEmployee() {
         List<Person> personList = PersonRepository.getAllPerson();
-        System.out.printf("| %11s | %-11s | %-15s| %-15s|\n", "ID", "Nama", "Alamat", "Pengalaman");
-        System.out.println("+================================================================+");
+        System.out.println("+==============================================================+");
+        System.out.printf("| %11s | %-11s | %-15s| %-15s \n", "ID", "Nama", "Alamat", "Pengalaman");
+        System.out.println("+==============================================================+");
         for (Person person : personList) {
             if (person instanceof com.booking.models.Employee) {
                 com.booking.models.Employee employee = (com.booking.models.Employee) person;
@@ -76,33 +81,40 @@ public class PrintService {
                     System.out.printf("| %11s ", employee.getId());
                     System.out.printf("| %-11s ", employee.getName());
                     System.out.printf("| %-15s",  employee.getAddress());
-                    System.out.printf("| %-15s", employee.getExperience());
+                    System.out.printf("| %-15s |", employee.getExperience());
                     System.out.println();
                 }
             }
         }
-         System.out.println("==================================================================");
+         System.out.println("===============================================================+");
     }
 
     public void showHistoryReservation(List<Reservation> reservationList) {
         double totalProfit = 0;
-        System.out.printf("| %-4s | %-15s | %-15s | %-15s | %-10s |\n",
+        System.out.printf("| %-11s | %-15s | %-15s | %-15s | %-20s |\n",
                 "ID", "Nama Customer", "Service", "Total Biaya", "Workstage");
-        System.out.println("+==============================================================================+");
+        System.out.println("+====================================================================+");
         for (Reservation reservation : reservationList) {
-            if (reservation.getWorkstage().equalsIgnoreCase("Waiting") || reservation.getWorkstage().equalsIgnoreCase("In process")) {                        
-                System.out.printf("| %11s | %-11s | %-15s| %-6s| %-20s| %-15s| %-15s| %-15s|\n", "ID", "Nama Customer", "Service", "Total Biaya", "Workstage", "Placement", "Salary", "Allowance");
-                System.out.println("======================================================================================================================");
-                System.out.printf("| %11s ", reservation.getReservationId());
-                System.out.printf("| %-11s ", reservation.getCustomer().getName());
-                System.out.printf("| %-15s",  printServices(reservation.getServices()));
-                System.out.printf("| %-6s", reservation.getReservationPrice());
-                System.out.printf("| %-20s", reservation.getWorkstage());
-                System.out.println();
-                System.out.println("======================================================================================================================");
-                System.out.println("|Total Keuntungan : Rp. " + totalProfit);
-                System.out.println("======================================================================================================");
+            if (reservation.getWorkstage().equalsIgnoreCase("Finish") || reservation.getWorkstage().equalsIgnoreCase("Cancel")) {
+                if (reservation.getServices().size() > 0) {
+                    System.out.printf("| %11s ", reservation.getReservationId());
+                    System.out.printf("| %-15s", reservation.getCustomer().getName());
+                    System.out.printf("| %-15s", printServices(reservation.getServices()));
+                    System.out.printf("| %-15s", formatCurrency(reservation.getReservationPrice()));
+                    System.out.printf("| %-20s", reservation.getWorkstage());
+                    System.out.println();
+                    totalProfit += reservation.getReservationPrice();
+                }
             }
         }
+        System.out.println("| Total Keuntungan : " + formatCurrency(totalProfit));
+        System.out.println("+====================================================================+");
     }
+
+    public static String formatCurrency(double formatCurrency) {
+        Locale indonesiaLocale = new Locale("id", "ID");
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(indonesiaLocale);
+        return currencyFormat.format(formatCurrency);
+    }
+
 }

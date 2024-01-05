@@ -1,6 +1,8 @@
 package com.booking.service;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 import com.booking.models.Customer;
@@ -12,7 +14,9 @@ import com.booking.repositories.PersonRepository;
 import com.booking.repositories.ServiceRepository;
 
 public class ReservationService {
+    private static List<Reservation> reservationList = new ArrayList<>();
     private static Scanner input = new Scanner(System.in);
+    private static PrintService printService = new PrintService();
 
     public static void createReservation() {
         String reservationId = "Rsv-" + System.currentTimeMillis();
@@ -25,21 +29,26 @@ public class ReservationService {
         Reservation reservation = new Reservation(reservationId, customer, employee, selectedServices, workstage);
         reservation.setReservationPrice(reservationPrice);
 
-        System.out.println("Booking Berhasil!");
-        System.out.println("Total Biaya Booking : Rp. " + reservationPrice);
+        reservationList.add(reservation);
+
+        System.out.println("\nBooking Berhasil!");
+        System.out.println("Total Biaya Booking : Rp. " + (printService.formatCurrency(reservationPrice)));
     }
 
     private static Customer getCustomerByCustomerId() {
-        System.out.println("No\tID\tNama\tAlamat\tMembership\tUang");
+        System.out.println("==================================================================================");
+        System.out.printf("| %-12s | %-12s | %-15s | %-12s | %-15s |\n",
+        "ID", "Nama", "Alamat", "Membership", "Uang");
+        System.out.println("==================================================================================");
         List<Person> persons = PersonRepository.getAllPerson();
         persons.stream()
                 .filter(person -> person instanceof Customer)
                 .map(person -> (Customer) person)
-                .forEach(customer -> System.out.println(customer.getId() + "\t" +
-                        customer.getName() + "\t" + customer.getAddress() + "\t" +
-                        (customer.getMember() != null ? customer.getMember().getMembershipName() : "none") + "\t" +
-                        "Rp" + customer.getWallet()));
+                .forEach(customer -> System.out.printf("| %-12s | %-12s | %-15s | %-12s | %-15s |\n", customer.getId(),
+                customer.getName(), customer.getAddress(), 
+                customer.getMember() != null ? customer.getMember().getMembershipName() : "None", (formatCurrency(customer.getWallet()))));
 
+        System.out.println("==================================================================================");
         System.out.print("Silahkan Masukkan Customer Id: ");
         Customer customer = null;
         do {
@@ -58,15 +67,18 @@ public class ReservationService {
     }
 
     private static Employee chooseEmployee() {
-        System.out.println("No\tID\tNama\tAlamat\tPengalaman");
+        System.out.println("==============================================================");
+        System.out.printf("| %-12s | %-12s | %-15s | %-10s |\n",
+        "ID", "Nama", "Alamat", "Pengalaman");
+        System.out.println("==============================================================");
         List<Person> persons = PersonRepository.getAllPerson();
         persons.stream()
                 .filter(person -> person instanceof Employee)
                 .map(person -> (Employee) person)
-                .forEach(employee -> System.out.println(employee.getId() + "\t" +
-                        employee.getName() + "\t" + employee.getAddress() + "\t" +
+                .forEach(employee -> System.out.printf("| %-12s | %-12s | %-15s | %-10s |\n", employee.getId(),
+                        employee.getName(), employee.getAddress(),
                         employee.getExperience()));
-
+        System.out.println("==============================================================");
         System.out.print("Silahkan Masukkan Employee Id: ");
         Employee employee = null;
         do {
@@ -89,10 +101,13 @@ public class ReservationService {
         List<Service> selectedServices = new ArrayList<>();
 
         while (true) {
-            System.out.println("No\tID\tNama\tHarga");
-            serviceList.forEach(service -> System.out.println(service.getId() + "\t" +
-                    service.getServiceName() + "\tRp" + service.getPrice()));
-
+            System.out.println("=========================================================");
+            System.out.printf("| %-12s | %-20s | %-15s |\n",
+            "ID", "Nama Service", "Harga");
+            System.out.println("=========================================================");
+            serviceList.forEach(service -> System.out.printf("| %-12s | %-20s | %-15s |\n", service.getId(),
+                service.getServiceName(), (formatCurrency(service.getPrice()))));
+            System.out.println("=========================================================");
             System.out.print("Silahkan Masukkan Service Id: ");
             String serviceId = input.nextLine();
 
@@ -103,12 +118,12 @@ public class ReservationService {
             if (selectedService == null) {
                 System.out.println("Service yang dicari tidak tersedia");
             } else if (selectedServices.contains(selectedService)) {
-                System.out.println("Service sudah dipilih");
+                System.out.println("Service sudah dipilih. Pilih Service yang lain");
             } else {
                 selectedServices.add(selectedService);
             }
 
-            System.out.print("Ingin pilih service yang lain (Y/T)? ");
+            System.out.print("\nIngin pilih service yang lain (Y/T)? ");
             String continueChoice = input.nextLine().toUpperCase();
 
             if (!continueChoice.equals("Y")) {
@@ -143,31 +158,35 @@ public class ReservationService {
     public static void editReservationWorkstage() {
         System.out.print("Silahkan Masukkan Reservasi Id : ");
         String reservationId = input.nextLine();
-    
+
         Reservation reservationToEdit = findReservationById(reservationId);
-    
+
         if (reservationToEdit != null && reservationToEdit.getWorkstage().equalsIgnoreCase("In Process")) {
-            System.out.print("Selesaikan reservasi : ");
+            System.out.print("Selesaikan reservasi (Finish/Cancel): ");
             String newWorkstage = input.nextLine();
-            
+
             if (newWorkstage.equalsIgnoreCase("Finish") || newWorkstage.equalsIgnoreCase("Cancel")) {
                 reservationToEdit.setWorkstage(newWorkstage);
                 System.out.println("Reservasi dengan id " + reservationId + " sudah " + newWorkstage);
             } else {
-                System.out.println("Tidak valid");
+                System.out.println("Tidak valid. Reservasi tidak dapat diubah.");
             }
         } else if (reservationToEdit != null && !reservationToEdit.getWorkstage().equalsIgnoreCase("In Process")) {
             System.out.println("Reservasi dengan id " + reservationId + " tidak dalam tahap 'In Process' dan tidak dapat diedit");
         } else {
-            System.out.println("Reservasi dengan id " + reservationId + "tidak tersedia atau sudah selesai");
+            System.out.println("Reservasi dengan id " + reservationId + " tidak tersedia atau sudah selesai");
         }
     }
-    
+
     private static Reservation findReservationById(String reservationId) {
-        List<Reservation> reservationList = new ArrayList<>();  // Placeholder, replace with actual data retrieval
-    
         return reservationList.stream()
                 .filter(reservation -> reservation.getReservationId().equals(reservationId))
                 .findFirst().orElse(null);
+    }
+
+    public static String formatCurrency(double formatCurrency) {
+        Locale indonesiaLocale = new Locale("id", "ID");
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(indonesiaLocale);
+        return currencyFormat.format(formatCurrency);
     }
 }
